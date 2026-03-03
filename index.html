@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>owockibot · Community Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:       #080b0f;
+      --surface:  #0e1318;
+      --border:   #1a2230;
+      --gold:     #f5c842;
+      --teal:     #2dd4bf;
+      --teal-dim: #0d9488;
+      --red:      #f87171;
+      --text:     #e2e8f0;
+      --muted:    #64748b;
+      --radius:   12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface);
+    }
+
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--gold), #e8a000);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    header h1 span { color: var(--gold); }
+
+    .refresh-info {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    #last-updated {
+      display: block;
+      color: var(--teal);
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+
+    /* ── KPI Cards ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .kpi.gold::before  { background: linear-gradient(90deg, var(--gold), #e8a000); }
+    .kpi.teal::before  { background: linear-gradient(90deg, var(--teal), var(--teal-dim)); }
+    .kpi.red::before   { background: linear-gradient(90deg, var(--red), #dc2626); }
+    .kpi.purple::before { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
+
+    .kpi-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .kpi.gold  .kpi-value { color: var(--gold); }
+    .kpi.teal  .kpi-value { color: var(--teal); }
+    .kpi.red   .kpi-value { color: var(--red); }
+    .kpi.purple .kpi-value { color: #a78bfa; }
+
+    .kpi-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── Panels ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 24px;
+    }
+
+    .panel h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel h2 .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      display: inline-block;
+    }
+
+    /* ── Chart ── */
+    .chart-wrap {
+      position: relative;
+      height: 220px;
+    }
+
+    /* ── Leaderboard Table ── */
+    .lb-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .lb-table th {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .lb-table th:last-child,
+    .lb-table td:last-child { text-align: right; }
+
+    .lb-table tbody tr {
+      transition: background 0.15s;
+    }
+
+    .lb-table tbody tr:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .lb-table td {
+      padding: 11px 12px;
+      font-size: 0.87rem;
+      border-bottom: 1px solid rgba(26,34,48,0.7);
+      vertical-align: middle;
+    }
+
+    .rank {
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--muted);
+      width: 36px;
+    }
+
+    .rank-1 { color: var(--gold); }
+    .rank-2 { color: #94a3b8; }
+    .rank-3 { color: #b45309; }
+
+    .builder-addr {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      color: var(--teal);
+    }
+
+    .badge-bounties {
+      display: inline-block;
+      background: rgba(45,212,191,0.1);
+      border: 1px solid rgba(45,212,191,0.25);
+      color: var(--teal);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .earned {
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    /* ── Loading / Error ── */
+    #loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      padding: 80px 0;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #error-msg {
+      display: none;
+      background: rgba(248,113,113,0.08);
+      border: 1px solid rgba(248,113,113,0.25);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      color: var(--red);
+      margin-bottom: 24px;
+    }
+
+    #dashboard { display: none; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    footer a { color: var(--teal); text-decoration: none; }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .kpi-value { font-size: 1.5rem; }
+      .lb-table th:nth-child(3),
+      .lb-table td:nth-child(3) { display: none; }
+      header h1 { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🤖</div>
+  <div>
+    <h1><span>owockibot</span> · Community Dashboard</h1>
+  </div>
+  <div class="refresh-info">
+    auto-refresh every 60s
+    <span id="last-updated">—</span>
+  </div>
+</header>
+
+<main>
+  <div id="error-msg"></div>
+  <div id="loading">
+    <div class="spinner"></div>
+    <div>Loading bounty data…</div>
+  </div>
+
+  <div id="dashboard">
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi gold">
+        <div class="kpi-label">Total USDC Paid Out</div>
+        <div class="kpi-value" id="kpi-usdc">—</div>
+        <div class="kpi-sub">completed bounties</div>
+      </div>
+      <div class="kpi teal">
+        <div class="kpi-label">Unique Builders</div>
+        <div class="kpi-value" id="kpi-builders">—</div>
+        <div class="kpi-sub">distinct claimers</div>
+      </div>
+      <div class="kpi purple">
+        <div class="kpi-label">Bounties Completed</div>
+        <div class="kpi-value" id="kpi-completed">—</div>
+        <div class="kpi-sub">all time</div>
+      </div>
+      <div class="kpi red">
+        <div class="kpi-label">Active Bounties</div>
+        <div class="kpi-value" id="kpi-active">—</div>
+        <div class="kpi-sub">claimed + submitted</div>
+      </div>
+    </div>
+
+    <!-- Timeline chart -->
+    <div class="panel">
+      <h2><span class="dot"></span>Completion Timeline</h2>
+      <div class="chart-wrap">
+        <canvas id="timeline-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="panel">
+      <h2><span class="dot"></span>Builder Leaderboard</h2>
+      <div style="overflow-x:auto">
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Builder</th>
+              <th>Bounties</th>
+              <th>Total Earned</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Powered by <a href="https://owockibot.xyz" target="_blank">owockibot.xyz</a> ·
+  Data from <a href="https://www.owockibot.xyz/api/bounty-board" target="_blank">public API</a>
+</footer>
+
+<script>
+const API = 'https://www.owockibot.xyz/api/bounty-board';
+const TREASURY = '0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be'.toLowerCase();
+const REFRESH_MS = 60_000;
+
+let timelineChart = null;
+
+function fmt(n) {
+  return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function shortAddr(addr) {
+  if (!addr) return '—';
+  return addr.slice(0, 6) + '…' + addr.slice(-4);
+}
+
+async function fetchData() {
+  const res = await fetch(API);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+function processData(bounties) {
+  // Filter
+  const completed = bounties.filter(b => b.status === 'completed');
+  const active    = bounties.filter(b => b.status === 'claimed' || b.status === 'submitted');
+
+  // KPIs
+  const totalUsdc = completed.reduce((s, b) => s + (parseFloat(b.reward_usdc) || 0), 0);
+
+  const builders = new Set(
+    bounties
+      .filter(b => b.claimer_address && b.claimer_address.toLowerCase() !== TREASURY)
+      .map(b => b.claimer_address.toLowerCase())
+  );
+
+  // Leaderboard (completed only, exclude treasury)
+  const lb = {};
+  completed.forEach(b => {
+    const addr = b.claimer_address;
+    if (!addr || addr.toLowerCase() === TREASURY) return;
+    const key = addr.toLowerCase();
+    if (!lb[key]) lb[key] = { address: addr, count: 0, earned: 0 };
+    lb[key].count++;
+    lb[key].earned += parseFloat(b.reward_usdc) || 0;
+  });
+
+  const sorted = Object.values(lb).sort((a, b) => b.earned - a.earned);
+
+  // Timeline: group completed by week
+  const byWeek = {};
+  completed.forEach(b => {
+    const d = new Date(b.updated_at || b.created_at);
+    // Get Monday of that week
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1 - day);
+    const mon = new Date(d);
+    mon.setDate(d.getDate() + diff);
+    const key = mon.toISOString().slice(0, 10);
+    byWeek[key] = (byWeek[key] || 0) + 1;
+  });
+
+  const timeKeys = Object.keys(byWeek).sort();
+  const timeCounts = timeKeys.map(k => byWeek[k]);
+
+  return { totalUsdc, builders: builders.size, completedCount: completed.length, activeCount: active.length, sorted, timeKeys, timeCounts };
+}
+
+function renderKPIs({ totalUsdc, builders, completedCount, activeCount }) {
+  document.getElementById('kpi-usdc').textContent      = '$' + fmt(totalUsdc);
+  document.getElementById('kpi-builders').textContent  = builders;
+  document.getElementById('kpi-completed').textContent = completedCount;
+  document.getElementById('kpi-active').textContent    = activeCount;
+}
+
+function renderLeaderboard(sorted) {
+  const tbody = document.getElementById('leaderboard-body');
+  if (sorted.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px">No completed bounties yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sorted.map((b, i) => {
+    const rank = i + 1;
+    const cls  = rank <= 3 ? `rank-${rank}` : '';
+    return `
+      <tr>
+        <td class="rank ${cls}">${rank}</td>
+        <td>
+          <span class="builder-addr" title="${b.address}">${shortAddr(b.address)}</span>
+        </td>
+        <td><span class="badge-bounties">${b.count}</span></td>
+        <td class="earned">$${fmt(b.earned)}</td>
+      </tr>`;
+  }).join('');
+}
+
+function renderChart(timeKeys, timeCounts) {
+  const ctx = document.getElementById('timeline-chart').getContext('2d');
+
+  const labels = timeKeys.map(k => {
+    const d = new Date(k + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  });
+
+  if (timelineChart) timelineChart.destroy();
+
+  timelineChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels.length ? labels : ['No data'],
+      datasets: [{
+        label: 'Completions',
+        data: timeCounts.length ? timeCounts : [0],
+        backgroundColor: 'rgba(45,212,191,0.25)',
+        borderColor: '#2dd4bf',
+        borderWidth: 2,
+        borderRadius: 4,
+        hoverBackgroundColor: 'rgba(45,212,191,0.45)',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0e1318',
+          borderColor: '#1a2230',
+          borderWidth: 1,
+          titleColor: '#e2e8f0',
+          bodyColor: '#2dd4bf',
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y} completion${ctx.parsed.y !== 1 ? 's' : ''}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#1a2230' },
+          ticks: { color: '#64748b', font: { size: 11 } }
+        },
+        y: {
+          grid: { color: '#1a2230' },
+          ticks: { color: '#64748b', stepSize: 1, font: { size: 11 } },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+async function refresh() {
+  try {
+    const raw = await fetchData();
+    const data = processData(raw);
+
+    document.getElementById('loading').style.display  = 'none';
+    document.getElementById('error-msg').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+
+    renderKPIs(data);
+    renderLeaderboard(data.sorted);
+    renderChart(data.timeKeys, data.timeCounts);
+
+    document.getElementById('last-updated').textContent =
+      'Updated ' + new Date().toLocaleTimeString();
+  } catch (err) {
+    document.getElementById('loading').style.display  = 'none';
+    const el = document.getElementById('error-msg');
+    el.style.display = 'block';
+    el.textContent   = '⚠ Failed to load data: ' + err.message;
+    console.error(err);
+  }
+}
+
+refresh();
+setInterval(refresh, REFRESH_MS);
+</script>
+</body>
+</html>
