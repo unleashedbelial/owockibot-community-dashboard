@@ -359,24 +359,13 @@
 </footer>
 
 <script>
-const API = 'https://www.owockibot.xyz/api/bounty-board';
+const API    = 'https://www.owockibot.xyz/api/bounty-board';
+const EV_API = 'https://www.owockibot.xyz/api/bounty-board/ev';
 const TREASURY = '0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be'.toLowerCase();
 const REFRESH_MS = 60_000;
 
 let timelineChart = null;
-const nameCache = {};
-
-// Known builder names from owockibot.xyz/builders (short addr → display name)
-const KNOWN_BUILDERS = {
-  '0x8037…bc10': '@heen_ai',
-  '0x95eb…243b': 'Builder 0x95eb',
-  '0x5ed8…55cb': 'Dune Builder',
-  '0x7284…25a0': '@ChideraE78353',
-  '0x27fe…3e5d': 'TG Bot Builder',
-  '0x40ec…b78b': '@Ijeco',
-  '0x1214…fe40': 'Translator',
-  '0x8f69…9ebf': '@mutheudev',
-};
+const nameCache = {}; // addr.toLowerCase() → display name
 
 function fmt(n) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -387,39 +376,22 @@ function shortAddr(addr) {
   return addr.slice(0, 6) + '…' + addr.slice(-4);
 }
 
-async function resolveNames(addresses) {
-  const unresolved = [...new Set(addresses.map(a => a.toLowerCase()))].filter(a => !(a in nameCache));
-  await Promise.allSettled(unresolved.map(async addr => {
-    // Check owockibot known builders first
-    const short = (addr.slice(0,6) + '…' + addr.slice(-4)).toLowerCase();
-    const known = Object.entries(KNOWN_BUILDERS).find(([k]) => k.toLowerCase() === short);
-    if (known && known[1] && !known[1].startsWith('0x')) {
-      nameCache[addr] = known[1];
-      return;
-    }
-    // Fallback: web3.bio ENS/Base names
-    try {
-      const r = await fetch(`https://api.web3.bio/profile/${addr}`, { signal: AbortSignal.timeout(4000) });
-      if (!r.ok) { nameCache[addr] = null; return; }
-      const profiles = await r.json();
-      const best = profiles.find(p => p.platform === 'basenames') ||
-                   profiles.find(p => p.platform === 'ens') ||
-                   profiles.find(p => p.platform === 'farcaster') ||
-                   profiles[0];
-      nameCache[addr] = best?.displayName || best?.identity || null;
-    } catch { nameCache[addr] = null; }
-  }));
+async function loadBuilderNames() {
+  try {
+    const r = await fetch(EV_API);
+    if (!r.ok) return;
+    const builders = await r.json();
+    builders.forEach(b => {
+      if (b.address && b.name) {
+        nameCache[b.address.toLowerCase()] = b.name;
+      }
+    });
+  } catch { /* silent */ }
 }
 
 function displayName(addr) {
   if (!addr) return '—';
-  const name = nameCache[addr.toLowerCase()];
-  if (name) return name;
-  // Sync check against KNOWN_BUILDERS
-  const short = (addr.slice(0,6) + '…' + addr.slice(-4)).toLowerCase();
-  const known = Object.entries(KNOWN_BUILDERS).find(([k]) => k.toLowerCase() === short);
-  if (known && known[1] && !known[1].startsWith('0x')) return known[1];
-  return shortAddr(addr);
+  return nameCache[addr.toLowerCase()] || shortAddr(addr);
 }
 
 async function fetchData() {
@@ -481,33 +453,28 @@ function renderKPIs({ totalUsdc, builders, completedCount, activeCount }) {
   document.getElementById('kpi-active').textContent    = activeCount;
 }
 
-async function renderLeaderboard(sorted) {
+function renderLeaderboard(sorted) {
   const tbody = document.getElementById('leaderboard-body');
   if (sorted.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px">No completed bounties yet</td></tr>';
     return;
   }
-  // Show truncated addresses immediately
   tbody.innerHTML = sorted.map((b, i) => {
     const rank = i + 1;
     const cls  = rank <= 3 ? `rank-${rank}` : '';
+    const name = displayName(b.address);
+    const showAddr = name !== shortAddr(b.address);
     return `
       <tr>
         <td class="rank ${cls}">${rank}</td>
         <td>
-          <span class="builder-addr" title="${b.address}" id="name-${b.address.toLowerCase().slice(2,8)}">${shortAddr(b.address)}</span>
+          <span class="builder-addr" title="${b.address}">${name}</span>
+          ${showAddr ? `<span style="color:var(--muted);font-size:0.75em;margin-left:4px">(${shortAddr(b.address)})</span>` : ''}
         </td>
         <td><span class="badge-bounties">${b.count}</span></td>
         <td class="earned">$${fmt(b.earned)}</td>
       </tr>`;
   }).join('');
-  // Resolve names and patch in-place
-  await resolveNames(sorted.map(b => b.address));
-  sorted.forEach(b => {
-    const id = `name-${b.address.toLowerCase().slice(2,8)}`;
-    const el = document.getElementById(id);
-    if (el) el.textContent = displayName(b.address);
-  });
 }
 
 function renderChart(timeKeys, timeCounts) {
@@ -567,7 +534,7 @@ function renderChart(timeKeys, timeCounts) {
 
 async function refresh() {
   try {
-    const raw = await fetchData();
+    const [raw] = await Promise.all([fetchData(), loadBuilderNames()]);
     const data = processData(raw);
 
     document.getElementById('loading').style.display  = 'none';
@@ -575,7 +542,7 @@ async function refresh() {
     document.getElementById('dashboard').style.display = 'block';
 
     renderKPIs(data);
-    await renderLeaderboard(data.sorted);
+    renderLeaderboard(data.sorted);
     renderChart(data.timeKeys, data.timeCounts);
 
     document.getElementById('last-updated').textContent =
