@@ -460,7 +460,8 @@
               <th>#</th>
               <th>Builder</th>
               <th class="hide-mobile">Rate</th>
-              <th class="hide-mobile">Completed</th>
+              <th class="hide-mobile">✅ Done</th>
+              <th class="hide-mobile">📤 Pending</th>
               <th>EV Score</th>
               <th>Earned</th>
             </tr>
@@ -613,6 +614,7 @@ function renderLeaderboard(positive) {
       </td>
       <td class="hide-mobile">${rateBar(b.completion_rate)}</td>
       <td class="hide-mobile"><span class="badge-count">${b.completed}</span></td>
+      <td class="hide-mobile">${b.submitted > 0 ? `<span class="badge-count" style="background:rgba(245,200,66,0.1);border-color:rgba(245,200,66,0.25);color:var(--gold)">${b.submitted}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
       <td><span class="ev-score ${evClass(b.ev_score)}">${evFmt(b.ev_score)}</span></td>
       <td class="earned">$${fmt(b.earned)}</td>
     </tr>`;
