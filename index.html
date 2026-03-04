@@ -9,274 +9,361 @@
     :root {
       --bg:       #080b0f;
       --surface:  #0e1318;
+      --surface2: #121920;
       --border:   #1a2230;
       --gold:     #f5c842;
+      --gold-dim: #c9a230;
       --teal:     #2dd4bf;
       --teal-dim: #0d9488;
+      --green:    #4ade80;
+      --green-dim:#16a34a;
       --red:      #f87171;
+      --red-dim:  #dc2626;
+      --amber:    #fb923c;
+      --amber-dim:#c2410c;
       --text:     #e2e8f0;
       --muted:    #64748b;
+      --muted2:   #94a3b8;
       --radius:   12px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scrollbar-width: none; }
+    ::-webkit-scrollbar { display: none; }
 
     body {
       background: var(--bg);
       color: var(--text);
       font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
       min-height: 100vh;
+      line-height: 1.5;
     }
 
     /* ── Header ── */
     header {
       border-bottom: 1px solid var(--border);
-      padding: 20px 24px;
+      padding: 18px 28px;
       display: flex;
       align-items: center;
       gap: 14px;
       background: var(--surface);
+      position: sticky; top: 0; z-index: 10;
     }
 
     .logo {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, var(--gold), #e8a000);
-      border-radius: 10px;
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
+      font-size: 18px; flex-shrink: 0;
     }
 
     header h1 {
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 700;
       letter-spacing: -0.02em;
     }
-
     header h1 span { color: var(--gold); }
 
-    .refresh-info {
+    .header-right {
       margin-left: auto;
-      font-size: 0.75rem;
-      color: var(--muted);
-      text-align: right;
+      display: flex; align-items: center; gap: 20px;
     }
 
-    #last-updated {
-      display: block;
-      color: var(--teal);
+    .live-dot {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.72rem; color: var(--muted2);
     }
+
+    .live-dot::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 2px rgba(74,222,128,0.25);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 2px rgba(74,222,128,0.25); }
+      50%      { box-shadow: 0 0 0 5px rgba(74,222,128,0.08); }
+    }
+
+    #last-updated { color: var(--teal); font-size: 0.72rem; }
 
     /* ── Layout ── */
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 28px 20px 48px;
-    }
+    main { max-width: 1140px; margin: 0 auto; padding: 28px 20px 60px; }
 
-    /* ── KPI Cards ── */
+    /* ── KPI Grid ── */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
     }
 
     .kpi {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px 22px;
-      position: relative;
-      overflow: hidden;
+      padding: 18px 20px;
+      position: relative; overflow: hidden;
     }
 
     .kpi::before {
       content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
     }
-    .kpi.gold::before  { background: linear-gradient(90deg, var(--gold), #e8a000); }
-    .kpi.teal::before  { background: linear-gradient(90deg, var(--teal), var(--teal-dim)); }
-    .kpi.red::before   { background: linear-gradient(90deg, var(--red), #dc2626); }
-    .kpi.purple::before { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
+    .kpi.gold::before   { background: linear-gradient(90deg, var(--gold), var(--gold-dim)); }
+    .kpi.teal::before   { background: linear-gradient(90deg, var(--teal), var(--teal-dim)); }
+    .kpi.green::before  { background: linear-gradient(90deg, var(--green), var(--green-dim)); }
+    .kpi.amber::before  { background: linear-gradient(90deg, var(--amber), var(--amber-dim)); }
+    .kpi.red::before    { background: linear-gradient(90deg, var(--red), var(--red-dim)); }
 
+    .kpi-icon { font-size: 1.3rem; margin-bottom: 10px; }
     .kpi-label {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--muted);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
-
     .kpi-value {
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1;
+      font-size: 1.9rem; font-weight: 700;
+      letter-spacing: -0.03em; line-height: 1;
     }
     .kpi.gold  .kpi-value { color: var(--gold); }
     .kpi.teal  .kpi-value { color: var(--teal); }
+    .kpi.green .kpi-value { color: var(--green); }
+    .kpi.amber .kpi-value { color: var(--amber); }
     .kpi.red   .kpi-value { color: var(--red); }
-    .kpi.purple .kpi-value { color: #a78bfa; }
 
-    .kpi-sub {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 4px;
-    }
+    .kpi-sub { font-size: 0.74rem; color: var(--muted); margin-top: 5px; }
 
-    /* ── Panels ── */
+    /* ── Two-col layout ── */
+    .two-col { display: grid; grid-template-columns: 1fr 360px; gap: 20px; margin-bottom: 24px; }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── Panel ── */
     .panel {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 22px 24px;
-      margin-bottom: 24px;
+      padding: 20px 22px;
+      margin-bottom: 20px;
     }
 
-    .panel h2 {
-      font-size: 0.85rem;
+    .panel-title {
+      font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--muted);
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
     }
-
-    .panel h2 .dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--teal);
-      display: inline-block;
-    }
+    .panel-title .accent { color: var(--teal); }
 
     /* ── Chart ── */
-    .chart-wrap {
-      position: relative;
-      height: 220px;
+    .chart-wrap { position: relative; height: 210px; }
+
+    /* ── EV Explain Box ── */
+    .ev-explain {
+      background: linear-gradient(135deg, #0e1318, #0a1015);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--teal);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      font-size: 0.82rem;
+      color: var(--muted2);
+      line-height: 1.7;
     }
+    .ev-explain strong { color: var(--text); }
+    .ev-explain .formula {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 10px 0 6px;
+      color: var(--teal);
+    }
+    .ev-explain .formula span { color: var(--muted2); }
+    .ev-explain .penalty { color: var(--red); font-size: 0.75rem; margin-top: 6px; }
 
     /* ── Leaderboard Table ── */
-    .lb-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    .lb-table { width: 100%; border-collapse: collapse; }
 
     .lb-table th {
-      font-size: 0.72rem;
+      font-size: 0.69rem;
       text-transform: uppercase;
       letter-spacing: 0.07em;
       color: var(--muted);
       text-align: left;
-      padding: 8px 12px;
+      padding: 7px 10px;
       border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
 
-    .lb-table th:last-child,
-    .lb-table td:last-child { text-align: right; }
+    .lb-table th:not(:nth-child(2)),
+    .lb-table td:not(:nth-child(2)) { text-align: right; }
+    .lb-table th:nth-child(2),
+    .lb-table td:nth-child(2) { text-align: left; }
 
-    .lb-table tbody tr {
-      transition: background 0.15s;
-    }
-
-    .lb-table tbody tr:hover {
-      background: rgba(255,255,255,0.03);
-    }
+    .lb-table tbody tr { transition: background 0.12s; }
+    .lb-table tbody tr:hover { background: rgba(255,255,255,0.025); }
 
     .lb-table td {
-      padding: 11px 12px;
-      font-size: 0.87rem;
-      border-bottom: 1px solid rgba(26,34,48,0.7);
+      padding: 10px 10px;
+      font-size: 0.84rem;
+      border-bottom: 1px solid rgba(26,34,48,0.6);
       vertical-align: middle;
     }
 
-    .rank {
-      font-weight: 700;
-      font-size: 0.8rem;
-      color: var(--muted);
-      width: 36px;
-    }
+    .lb-table tbody tr:last-child td { border-bottom: none; }
 
+    .rank { font-weight: 700; font-size: 0.78rem; color: var(--muted); width: 32px; }
     .rank-1 { color: var(--gold); }
-    .rank-2 { color: #94a3b8; }
-    .rank-3 { color: #b45309; }
+    .rank-2 { color: var(--muted2); }
+    .rank-3 { color: var(--amber-dim); }
 
-    .builder-addr {
+    .builder-name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.84rem;
+    }
+    .builder-sub {
       font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 0.78rem;
-      color: var(--teal);
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 1px;
     }
 
-    .badge-bounties {
+    .tier-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 7px;
+      border-radius: 999px;
+      margin-left: 6px;
+    }
+    .tier-trusted  { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+    .tier-probation{ background: rgba(251,146,60,0.12); color: var(--amber); border: 1px solid rgba(251,146,60,0.2); }
+    .tier-negative { background: rgba(248,113,113,0.12); color: var(--red);  border: 1px solid rgba(248,113,113,0.2); }
+
+    .ev-score {
+      font-weight: 700;
+      font-size: 0.84rem;
+    }
+    .ev-pos { color: var(--green); }
+    .ev-neg { color: var(--red); }
+    .ev-zero{ color: var(--muted2); }
+
+    .rate-bar {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.78rem;
+    }
+    .rate-track {
+      width: 48px; height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .rate-fill { height: 100%; border-radius: 99px; }
+
+    .badge-count {
       display: inline-block;
       background: rgba(45,212,191,0.1);
-      border: 1px solid rgba(45,212,191,0.25);
+      border: 1px solid rgba(45,212,191,0.2);
       color: var(--teal);
       border-radius: 999px;
-      padding: 2px 10px;
-      font-size: 0.75rem;
+      padding: 2px 9px;
+      font-size: 0.72rem;
       font-weight: 600;
     }
 
-    .earned {
-      font-weight: 700;
-      color: var(--gold);
+    .earned { font-weight: 700; color: var(--gold); font-size: 0.84rem; }
+
+    .stale-warn {
+      color: var(--amber);
+      font-size: 0.72rem;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    /* ── Negative EV table ── */
+    .neg-table { width: 100%; border-collapse: collapse; }
+    .neg-table th {
+      font-size: 0.69rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    .neg-table th:not(:nth-child(2)),
+    .neg-table td:not(:nth-child(2)) { text-align: right; }
+    .neg-table td {
+      padding: 9px 10px;
+      font-size: 0.82rem;
+      border-bottom: 1px solid rgba(26,34,48,0.6);
+      vertical-align: middle;
+    }
+    .neg-table tbody tr:last-child td { border-bottom: none; }
+    .neg-table tbody tr:hover { background: rgba(248,113,113,0.03); }
+
+    .neg-reason {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 2px;
     }
 
     /* ── Loading / Error ── */
     #loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 16px;
-      padding: 80px 0;
-      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px;
+      padding: 80px 0; color: var(--muted);
     }
-
     .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid var(--border);
+      width: 32px; height: 32px;
+      border: 2px solid var(--border);
       border-top-color: var(--teal);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      animation: spin 0.75s linear infinite;
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
 
     #error-msg {
       display: none;
-      background: rgba(248,113,113,0.08);
-      border: 1px solid rgba(248,113,113,0.25);
+      background: rgba(248,113,113,0.07);
+      border: 1px solid rgba(248,113,113,0.2);
       border-radius: var(--radius);
-      padding: 16px 20px;
+      padding: 14px 18px;
       color: var(--red);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     #dashboard { display: none; }
 
-    /* ── Footer ── */
     footer {
       text-align: center;
-      padding: 24px;
-      font-size: 0.75rem;
+      padding: 20px;
+      font-size: 0.72rem;
       color: var(--muted);
       border-top: 1px solid var(--border);
     }
-
     footer a { color: var(--teal); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
 
-    /* ── Mobile ── */
     @media (max-width: 600px) {
       .kpi-grid { grid-template-columns: 1fr 1fr; }
       .kpi-value { font-size: 1.5rem; }
-      .lb-table th:nth-child(3),
-      .lb-table td:nth-child(3) { display: none; }
-      header h1 { font-size: 1rem; }
+      header { padding: 14px 16px; }
+      header h1 { font-size: 0.95rem; }
+      .hide-mobile { display: none; }
     }
   </style>
 </head>
@@ -287,8 +374,8 @@
   <div>
     <h1><span>owockibot</span> · Community Dashboard</h1>
   </div>
-  <div class="refresh-info">
-    auto-refresh every 60s
+  <div class="header-right">
+    <div class="live-dot">live</div>
     <span id="last-updated">—</span>
   </div>
 </header>
@@ -301,61 +388,114 @@
   </div>
 
   <div id="dashboard">
+
     <!-- KPIs -->
     <div class="kpi-grid">
       <div class="kpi gold">
-        <div class="kpi-label">Total USDC Paid Out</div>
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-label">USDC Paid Out</div>
         <div class="kpi-value" id="kpi-usdc">—</div>
         <div class="kpi-sub">completed bounties</div>
       </div>
       <div class="kpi teal">
-        <div class="kpi-label">Unique Builders</div>
+        <div class="kpi-icon">🏗️</div>
+        <div class="kpi-label">Total Builders</div>
         <div class="kpi-value" id="kpi-builders">—</div>
         <div class="kpi-sub">distinct claimers</div>
       </div>
-      <div class="kpi purple">
+      <div class="kpi green">
+        <div class="kpi-icon">✅</div>
+        <div class="kpi-label">Trusted Builders</div>
+        <div class="kpi-value" id="kpi-trusted">—</div>
+        <div class="kpi-sub">positive EV + good rate</div>
+      </div>
+      <div class="kpi gold">
+        <div class="kpi-icon">🏆</div>
         <div class="kpi-label">Bounties Completed</div>
         <div class="kpi-value" id="kpi-completed">—</div>
         <div class="kpi-sub">all time</div>
       </div>
-      <div class="kpi red">
+      <div class="kpi amber">
+        <div class="kpi-icon">📋</div>
         <div class="kpi-label">Active Bounties</div>
         <div class="kpi-value" id="kpi-active">—</div>
         <div class="kpi-sub">claimed + submitted</div>
       </div>
     </div>
 
-    <!-- Timeline chart -->
-    <div class="panel">
-      <h2><span class="dot"></span>Completion Timeline</h2>
-      <div class="chart-wrap">
-        <canvas id="timeline-chart"></canvas>
+    <!-- Chart + EV Explain -->
+    <div class="two-col">
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-title"><span class="accent">▸</span> Completion Timeline</div>
+        <div class="chart-wrap">
+          <canvas id="timeline-chart"></canvas>
+        </div>
+      </div>
+
+      <div class="ev-explain">
+        <strong>What is EV Score?</strong><br>
+        EV (Expected Value) measures how much a builder contributes to the swarm vs. what they cost it.
+        <div class="formula">
+          EV = earned<br>
+          <span>− (stale_claims × $10)</span><br>
+          <span>− (cancelled × $5)</span><br>
+          <span>+ (pending × $5)</span>
+        </div>
+        <div class="penalty">⚠ Stale = claimed for 7+ days without submitting. Each stale claim locks a bounty slot and costs the ecosystem $10 EV.</div>
+        <div style="margin-top:10px;font-size:0.74rem;color:var(--muted)">
+          <strong style="color:var(--green)">Trusted</strong> · positive EV<br>
+          <strong style="color:var(--amber)">Probation</strong> · low rate or recent stales<br>
+          <strong style="color:var(--red)">Negative</strong> · costs more than contributes
+        </div>
       </div>
     </div>
 
     <!-- Leaderboard -->
     <div class="panel">
-      <h2><span class="dot"></span>Builder Leaderboard</h2>
+      <div class="panel-title"><span class="accent">▸</span> Builder Leaderboard — ranked by EV Score</div>
       <div style="overflow-x:auto">
         <table class="lb-table">
           <thead>
             <tr>
               <th>#</th>
               <th>Builder</th>
-              <th>Bounties</th>
-              <th>Total Earned</th>
+              <th class="hide-mobile">Rate</th>
+              <th class="hide-mobile">Completed</th>
+              <th>EV Score</th>
+              <th>Earned</th>
             </tr>
           </thead>
           <tbody id="leaderboard-body"></tbody>
         </table>
       </div>
     </div>
-  </div>
+
+    <!-- Negative EV -->
+    <div class="panel" id="neg-panel" style="border-color:rgba(248,113,113,0.2)">
+      <div class="panel-title" style="color:var(--red)">⚠ Negative EV Builders — costing more than contributing</div>
+      <div style="overflow-x:auto">
+        <table class="neg-table">
+          <thead>
+            <tr>
+              <th>Builder</th>
+              <th class="hide-mobile">Stale</th>
+              <th class="hide-mobile">Cancelled</th>
+              <th>EV Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="neg-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /dashboard -->
 </main>
 
 <footer>
   Powered by <a href="https://owockibot.xyz" target="_blank">owockibot.xyz</a> ·
-  Data from <a href="https://www.owockibot.xyz/api/bounty-board" target="_blank">public API</a>
+  <a href="https://www.owockibot.xyz/api/bounty-board" target="_blank">API</a> ·
+  <a href="https://www.owockibot.xyz/api/bounty-board/ev" target="_blank">EV API</a>
 </footer>
 
 <script>
@@ -365,47 +505,31 @@ const TREASURY = '0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be'.toLowerCase();
 const REFRESH_MS = 60_000;
 
 let timelineChart = null;
-const nameCache = {}; // addr.toLowerCase() → display name
+let evData = [];
 
 function fmt(n) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
-
 function shortAddr(addr) {
   if (!addr) return '—';
   return addr.slice(0, 6) + '…' + addr.slice(-4);
 }
-
-async function loadBuilderNames() {
-  try {
-    const r = await fetch(EV_API);
-    if (!r.ok) return;
-    const builders = await r.json();
-    builders.forEach(b => {
-      if (b.address && b.name) {
-        nameCache[b.address.toLowerCase()] = b.name;
-      }
-    });
-  } catch { /* silent */ }
-}
-
 function displayName(addr) {
   if (!addr) return '—';
-  return nameCache[addr.toLowerCase()] || shortAddr(addr);
+  const ev = evData.find(b => b.address.toLowerCase() === addr.toLowerCase());
+  return (ev && ev.name) ? ev.name : shortAddr(addr);
 }
 
-async function fetchData() {
-  const res = await fetch(API);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+async function fetchAll() {
+  const [bRes, evRes] = await Promise.all([fetch(API), fetch(EV_API)]);
+  if (!bRes.ok) throw new Error(`Bounty API: HTTP ${bRes.status}`);
+  if (!evRes.ok) throw new Error(`EV API: HTTP ${evRes.status}`);
+  return { bounties: await bRes.json(), ev: await evRes.json() };
 }
 
-function processData(bounties) {
-  // Filter
+function processData(bounties, ev) {
   const completed = bounties.filter(b => b.status === 'completed');
   const active    = bounties.filter(b => b.status === 'claimed' || b.status === 'submitted');
-
-  // KPIs
   const totalUsdc = completed.reduce((s, b) => s + (parseFloat(b.reward_usdc) || 0), 0);
 
   const builders = new Set(
@@ -414,24 +538,17 @@ function processData(bounties) {
       .map(b => b.claimer_address.toLowerCase())
   );
 
-  // Leaderboard (completed only, exclude treasury)
-  const lb = {};
-  completed.forEach(b => {
-    const addr = b.claimer_address;
-    if (!addr || addr.toLowerCase() === TREASURY) return;
-    const key = addr.toLowerCase();
-    if (!lb[key]) lb[key] = { address: addr, count: 0, earned: 0 };
-    lb[key].count++;
-    lb[key].earned += parseFloat(b.reward_usdc) || 0;
-  });
+  const trusted = ev.filter(b => b.tier === 'trusted').length;
 
-  const sorted = Object.values(lb).sort((a, b) => b.earned - a.earned);
+  // Positive EV builders (sorted by ev_score)
+  const positive = ev.filter(b => b.ev_score >= 0).sort((a, b) => b.ev_score - a.ev_score);
+  // Negative EV builders
+  const negative = ev.filter(b => b.ev_score < 0).sort((a, b) => a.ev_score - b.ev_score);
 
-  // Timeline: group completed by week
+  // Timeline
   const byWeek = {};
   completed.forEach(b => {
     const d = new Date(b.updated_at || b.created_at);
-    // Get Monday of that week
     const day = d.getDay();
     const diff = (day === 0 ? -6 : 1 - day);
     const mon = new Date(d);
@@ -439,47 +556,106 @@ function processData(bounties) {
     const key = mon.toISOString().slice(0, 10);
     byWeek[key] = (byWeek[key] || 0) + 1;
   });
-
   const timeKeys = Object.keys(byWeek).sort();
   const timeCounts = timeKeys.map(k => byWeek[k]);
 
-  return { totalUsdc, builders: builders.size, completedCount: completed.length, activeCount: active.length, sorted, timeKeys, timeCounts };
+  return { totalUsdc, builders: builders.size, trusted, completedCount: completed.length, activeCount: active.length, positive, negative, timeKeys, timeCounts };
 }
 
-function renderKPIs({ totalUsdc, builders, completedCount, activeCount }) {
+function renderKPIs({ totalUsdc, builders, trusted, completedCount, activeCount }) {
   document.getElementById('kpi-usdc').textContent      = '$' + fmt(totalUsdc);
   document.getElementById('kpi-builders').textContent  = builders;
+  document.getElementById('kpi-trusted').textContent   = trusted;
   document.getElementById('kpi-completed').textContent = completedCount;
   document.getElementById('kpi-active').textContent    = activeCount;
 }
 
-function renderLeaderboard(sorted) {
+function evClass(n) {
+  if (n > 0)  return 'ev-pos';
+  if (n < 0)  return 'ev-neg';
+  return 'ev-zero';
+}
+function evFmt(n) {
+  return (n >= 0 ? '+' : '') + fmt(n);
+}
+function tierBadge(tier) {
+  return `<span class="tier-badge tier-${tier}">${tier}</span>`;
+}
+function rateBar(rate) {
+  const color = rate >= 70 ? 'var(--green)' : rate >= 40 ? 'var(--amber)' : 'var(--red)';
+  return `<div class="rate-bar">
+    <div class="rate-track"><div class="rate-fill" style="width:${rate}%;background:${color}"></div></div>
+    <span style="color:${color}">${rate}%</span>
+  </div>`;
+}
+
+function renderLeaderboard(positive) {
   const tbody = document.getElementById('leaderboard-body');
-  if (sorted.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px">No completed bounties yet</td></tr>';
+  if (!positive.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:24px">No data yet</td></tr>';
     return;
   }
-  tbody.innerHTML = sorted.map((b, i) => {
+  const medals = ['🥇','🥈','🥉'];
+  tbody.innerHTML = positive.map((b, i) => {
     const rank = i + 1;
-    const cls  = rank <= 3 ? `rank-${rank}` : '';
-    const name = displayName(b.address);
-    const showAddr = name !== shortAddr(b.address);
-    return `
-      <tr>
-        <td class="rank ${cls}">${rank}</td>
-        <td>
-          <span class="builder-addr" title="${b.address}">${name}</span>
-          ${showAddr ? `<span style="color:var(--muted);font-size:0.75em;margin-left:4px">(${shortAddr(b.address)})</span>` : ''}
-        </td>
-        <td><span class="badge-bounties">${b.count}</span></td>
-        <td class="earned">$${fmt(b.earned)}</td>
-      </tr>`;
+    const rankStr = medals[i] || `<span class="rank">#${rank}</span>`;
+    const name = (b.name && !b.name.startsWith('0x')) ? b.name : shortAddr(b.address);
+    const showAddr = b.name && !b.name.startsWith('0x');
+    const staleNote = b.stale_claims > 0
+      ? `<span class="stale-warn">⏰ ${b.stale_claims} stale</span>` : '';
+
+    return `<tr>
+      <td style="font-size:1.1rem;text-align:right">${rankStr}</td>
+      <td>
+        <div class="builder-name">${name} ${tierBadge(b.tier)}</div>
+        ${showAddr ? `<div class="builder-sub">${shortAddr(b.address)}</div>` : ''}
+        ${staleNote}
+      </td>
+      <td class="hide-mobile">${rateBar(b.completion_rate)}</td>
+      <td class="hide-mobile"><span class="badge-count">${b.completed}</span></td>
+      <td><span class="ev-score ${evClass(b.ev_score)}">${evFmt(b.ev_score)}</span></td>
+      <td class="earned">$${fmt(b.earned)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderNegative(negative) {
+  const panel = document.getElementById('neg-panel');
+  const tbody = document.getElementById('neg-body');
+
+  if (!negative.length) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+
+  tbody.innerHTML = negative.map(b => {
+    const name = (b.name && !b.name.startsWith('0x')) ? b.name : shortAddr(b.address);
+    const showAddr = b.name && !b.name.startsWith('0x');
+
+    // Reason
+    const reasons = [];
+    if (b.stale_claims > 0) reasons.push(`${b.stale_claims} stale claim${b.stale_claims > 1 ? 's' : ''} (−$${b.stale_claims * 10})`);
+    if (b.cancelled > 0)    reasons.push(`${b.cancelled} cancelled (−$${b.cancelled * 5})`);
+    if (b.completion_rate === 0) reasons.push('0% completion rate');
+    const reasonStr = reasons.length ? reasons.join(' · ') : 'Low activity';
+
+    return `<tr>
+      <td>
+        <div class="builder-name" style="color:var(--red)">${name}</div>
+        ${showAddr ? `<div class="builder-sub">${shortAddr(b.address)}</div>` : ''}
+        <div class="neg-reason">${reasonStr}</div>
+      </td>
+      <td class="hide-mobile" style="color:var(--amber)">${b.stale_claims > 0 ? `⏰ ${b.stale_claims}` : '—'}</td>
+      <td class="hide-mobile" style="color:var(--red)">${b.cancelled > 0 ? `❌ ${b.cancelled}` : '—'}</td>
+      <td><span class="ev-score ev-neg">${evFmt(b.ev_score)}</span></td>
+      <td>${tierBadge(b.tier)}</td>
+    </tr>`;
   }).join('');
 }
 
 function renderChart(timeKeys, timeCounts) {
   const ctx = document.getElementById('timeline-chart').getContext('2d');
-
   const labels = timeKeys.map(k => {
     const d = new Date(k + 'T00:00:00');
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -494,11 +670,11 @@ function renderChart(timeKeys, timeCounts) {
       datasets: [{
         label: 'Completions',
         data: timeCounts.length ? timeCounts : [0],
-        backgroundColor: 'rgba(45,212,191,0.25)',
+        backgroundColor: 'rgba(45,212,191,0.2)',
         borderColor: '#2dd4bf',
-        borderWidth: 2,
+        borderWidth: 1.5,
         borderRadius: 4,
-        hoverBackgroundColor: 'rgba(45,212,191,0.45)',
+        hoverBackgroundColor: 'rgba(45,212,191,0.4)',
       }]
     },
     options: {
@@ -513,20 +689,13 @@ function renderChart(timeKeys, timeCounts) {
           titleColor: '#e2e8f0',
           bodyColor: '#2dd4bf',
           callbacks: {
-            label: ctx => ` ${ctx.parsed.y} completion${ctx.parsed.y !== 1 ? 's' : ''}`
+            label: c => ` ${c.parsed.y} completion${c.parsed.y !== 1 ? 's' : ''}`
           }
         }
       },
       scales: {
-        x: {
-          grid: { color: '#1a2230' },
-          ticks: { color: '#64748b', font: { size: 11 } }
-        },
-        y: {
-          grid: { color: '#1a2230' },
-          ticks: { color: '#64748b', stepSize: 1, font: { size: 11 } },
-          beginAtZero: true
-        }
+        x: { grid: { color: '#1a2230' }, ticks: { color: '#64748b', font: { size: 10 } } },
+        y: { grid: { color: '#1a2230' }, ticks: { color: '#64748b', stepSize: 1, font: { size: 10 } }, beginAtZero: true }
       }
     }
   });
@@ -534,24 +703,26 @@ function renderChart(timeKeys, timeCounts) {
 
 async function refresh() {
   try {
-    const [raw] = await Promise.all([fetchData(), loadBuilderNames()]);
-    const data = processData(raw);
+    const { bounties, ev } = await fetchAll();
+    evData = ev;
+    const data = processData(bounties, ev);
 
-    document.getElementById('loading').style.display  = 'none';
+    document.getElementById('loading').style.display   = 'none';
     document.getElementById('error-msg').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
 
     renderKPIs(data);
-    renderLeaderboard(data.sorted);
+    renderLeaderboard(data.positive);
+    renderNegative(data.negative);
     renderChart(data.timeKeys, data.timeCounts);
 
     document.getElementById('last-updated').textContent =
-      'Updated ' + new Date().toLocaleTimeString();
+      new Date().toLocaleTimeString();
   } catch (err) {
     document.getElementById('loading').style.display  = 'none';
     const el = document.getElementById('error-msg');
     el.style.display = 'block';
-    el.textContent   = '⚠ Failed to load data: ' + err.message;
+    el.textContent   = '⚠ Failed to load: ' + err.message;
     console.error(err);
   }
 }
