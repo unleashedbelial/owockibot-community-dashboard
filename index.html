@@ -366,6 +366,18 @@ const REFRESH_MS = 60_000;
 let timelineChart = null;
 const nameCache = {};
 
+// Known builder names from owockibot.xyz/builders (short addr → display name)
+const KNOWN_BUILDERS = {
+  '0x8037…bc10': '@heen_ai',
+  '0x95eb…243b': 'Builder 0x95eb',
+  '0x5ed8…55cb': 'Dune Builder',
+  '0x7284…25a0': '@ChideraE78353',
+  '0x27fe…3e5d': 'TG Bot Builder',
+  '0x40ec…b78b': '@Ijeco',
+  '0x1214…fe40': 'Translator',
+  '0x8f69…9ebf': '@mutheudev',
+};
+
 function fmt(n) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
@@ -378,6 +390,14 @@ function shortAddr(addr) {
 async function resolveNames(addresses) {
   const unresolved = [...new Set(addresses.map(a => a.toLowerCase()))].filter(a => !(a in nameCache));
   await Promise.allSettled(unresolved.map(async addr => {
+    // Check owockibot known builders first
+    const short = (addr.slice(0,6) + '…' + addr.slice(-4)).toLowerCase();
+    const known = Object.entries(KNOWN_BUILDERS).find(([k]) => k.toLowerCase() === short);
+    if (known && known[1] && !known[1].startsWith('0x')) {
+      nameCache[addr] = known[1];
+      return;
+    }
+    // Fallback: web3.bio ENS/Base names
     try {
       const r = await fetch(`https://api.web3.bio/profile/${addr}`, { signal: AbortSignal.timeout(4000) });
       if (!r.ok) { nameCache[addr] = null; return; }
@@ -394,7 +414,12 @@ async function resolveNames(addresses) {
 function displayName(addr) {
   if (!addr) return '—';
   const name = nameCache[addr.toLowerCase()];
-  return name || shortAddr(addr);
+  if (name) return name;
+  // Sync check against KNOWN_BUILDERS
+  const short = (addr.slice(0,6) + '…' + addr.slice(-4)).toLowerCase();
+  const known = Object.entries(KNOWN_BUILDERS).find(([k]) => k.toLowerCase() === short);
+  if (known && known[1] && !known[1].startsWith('0x')) return known[1];
+  return shortAddr(addr);
 }
 
 async function fetchData() {
