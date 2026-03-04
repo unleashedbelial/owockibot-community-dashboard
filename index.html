@@ -364,6 +364,7 @@ const TREASURY = '0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be'.toLowerCase();
 const REFRESH_MS = 60_000;
 
 let timelineChart = null;
+const nameCache = {};
 
 function fmt(n) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -372,6 +373,28 @@ function fmt(n) {
 function shortAddr(addr) {
   if (!addr) return '—';
   return addr.slice(0, 6) + '…' + addr.slice(-4);
+}
+
+async function resolveNames(addresses) {
+  const unresolved = [...new Set(addresses.map(a => a.toLowerCase()))].filter(a => !(a in nameCache));
+  await Promise.allSettled(unresolved.map(async addr => {
+    try {
+      const r = await fetch(`https://api.web3.bio/profile/${addr}`, { signal: AbortSignal.timeout(4000) });
+      if (!r.ok) { nameCache[addr] = null; return; }
+      const profiles = await r.json();
+      const best = profiles.find(p => p.platform === 'basenames') ||
+                   profiles.find(p => p.platform === 'ens') ||
+                   profiles.find(p => p.platform === 'farcaster') ||
+                   profiles[0];
+      nameCache[addr] = best?.displayName || best?.identity || null;
+    } catch { nameCache[addr] = null; }
+  }));
+}
+
+function displayName(addr) {
+  if (!addr) return '—';
+  const name = nameCache[addr.toLowerCase()];
+  return name || shortAddr(addr);
 }
 
 async function fetchData() {
@@ -433,12 +456,13 @@ function renderKPIs({ totalUsdc, builders, completedCount, activeCount }) {
   document.getElementById('kpi-active').textContent    = activeCount;
 }
 
-function renderLeaderboard(sorted) {
+async function renderLeaderboard(sorted) {
   const tbody = document.getElementById('leaderboard-body');
   if (sorted.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px">No completed bounties yet</td></tr>';
     return;
   }
+  // Show truncated addresses immediately
   tbody.innerHTML = sorted.map((b, i) => {
     const rank = i + 1;
     const cls  = rank <= 3 ? `rank-${rank}` : '';
@@ -446,12 +470,19 @@ function renderLeaderboard(sorted) {
       <tr>
         <td class="rank ${cls}">${rank}</td>
         <td>
-          <span class="builder-addr" title="${b.address}">${shortAddr(b.address)}</span>
+          <span class="builder-addr" title="${b.address}" id="name-${b.address.toLowerCase().slice(2,8)}">${shortAddr(b.address)}</span>
         </td>
         <td><span class="badge-bounties">${b.count}</span></td>
         <td class="earned">$${fmt(b.earned)}</td>
       </tr>`;
   }).join('');
+  // Resolve names and patch in-place
+  await resolveNames(sorted.map(b => b.address));
+  sorted.forEach(b => {
+    const id = `name-${b.address.toLowerCase().slice(2,8)}`;
+    const el = document.getElementById(id);
+    if (el) el.textContent = displayName(b.address);
+  });
 }
 
 function renderChart(timeKeys, timeCounts) {
@@ -519,7 +550,7 @@ async function refresh() {
     document.getElementById('dashboard').style.display = 'block';
 
     renderKPIs(data);
-    renderLeaderboard(data.sorted);
+    await renderLeaderboard(data.sorted);
     renderChart(data.timeKeys, data.timeCounts);
 
     document.getElementById('last-updated').textContent =
